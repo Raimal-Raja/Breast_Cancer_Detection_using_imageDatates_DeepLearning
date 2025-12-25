@@ -1,0 +1,70 @@
+# Breast Cancer Detection System - Configuration File
+
+# Model Configuration
+model:
+  architecture: "ResNet50"
+  input_shape: [224, 224, 3]
+  num_classes: 2
+  weights: "imagenet"
+  
+# Training Configuration
+training:
+  batch_size: 32
+  epochs: 50
+  fine_tune_epochs: 20
+  initial_learning_rate: 0.0001
+  fine_tune_learning_rate: 0.00001
+  validation_split: 0.15
+  test_split: 0.15
+  
+# Data Augmentation
+augmentation:
+  rotation_range: 20
+  width_shift_range: 0.2
+  height_shift_range: 0.2
+  shear_range: 0.2
+  zoom_range: 0.2
+  horizontal_flip: true
+  fill_mode: "nearest"
+  
+# Preprocessing
+preprocessing:
+  target_size: [224, 224]
+  clahe_clip_limit: 2.0
+  clahe_grid_size: [8, 8]
+  gaussian_kernel: [5, 5]
+  normalize: true
+  
+# Self-Learning Configuration
+self_learning:
+  retraining_queue_threshold: 100
+  retraining_interval_days: 30
+  min_confidence_for_queue: 70.0
+  model_version_history: 3
+  
+# Paths
+paths:
+  data_dir: "data/"
+  models_dir: "models/"
+  results_dir: "results/"
+  logs_dir: "logs/"
+  retraining_queue: "models/retraining_queue/"
+  
+# Prediction Settings
+prediction:
+  confidence_threshold: 0.5
+  save_predictions: true
+  add_to_queue_on_positive: true
+  
+# Streamlit App Settings
+streamlit:
+  title: "Breast Cancer Detection System"
+  page_icon: "🎗️"
+  layout: "wide"
+  initial_sidebar_state: "expanded"
+  
+# Logging
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: "logs/system.log"
