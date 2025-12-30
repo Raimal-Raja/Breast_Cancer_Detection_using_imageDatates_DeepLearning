@@ -1,5 +1,5 @@
 """
-Breast Cancer Detection System - Google Colab Setup
+Breast Cancer Detection System - Google Colab Setup (FIXED)
 Run this FIRST in Google Colab to set up everything
 """
 
@@ -12,19 +12,19 @@ print("=" * 80)
 
 # Step 1: Install all dependencies
 print("\n[1/6] Installing core dependencies...")
-!pip install -q kagglehub pandas numpy pillow opencv-python matplotlib seaborn scikit-learn tqdm
+!pip install -q pandas numpy pillow opencv-python matplotlib seaborn scikit-learn tqdm
 
 print("\n[2/6] Installing TensorFlow...")
 !pip install -q tensorflow
 
-print("\n[3/6] Installing visualization tools...")
+print("\n[3/6] Installing Kaggle integration...")
+!pip install -q kagglehub
+
+print("\n[4/6] Installing visualization tools...")
 !pip install -q plotly
 
-print("\n[4/6] Installing Streamlit and ngrok...")
-!pip install -q streamlit pyngrok streamlit-option-menu
-
-print("\n[5/6] Installing additional utilities...")
-!pip install -q pyyaml
+print("\n[5/6] Installing Streamlit...")
+!pip install -q streamlit streamlit-option-menu
 
 print("\n✅ All dependencies installed successfully!")
 
@@ -33,19 +33,15 @@ print("\n[6/6] Creating project directory structure...")
 directories = [
     'data/raw',
     'data/processed',
-    'data/training/benign',
-    'data/training/malignant',
-    'data/validation/benign',
-    'data/validation/malignant',
-    'data/testing/benign',
-    'data/testing/malignant',
-    'data/user_uploads',
+    'data/train/benign',
+    'data/train/malignant',
+    'data/val/benign',
+    'data/val/malignant',
+    'data/test/benign',
+    'data/test/malignant',
     'models',
-    'models/retraining_queue',
-    'src',
-    'app',
-    'logs',
-    'results'
+    'results',
+    'logs'
 ]
 
 for directory in directories:
@@ -62,8 +58,6 @@ try:
     import numpy as np
     from PIL import Image
     import kagglehub
-    import streamlit as st
-    from pyngrok import ngrok
     
     print(f"  ✅ TensorFlow version: {tf.__version__}")
     print(f"  ✅ OpenCV version: {cv2.__version__}")
@@ -75,18 +69,14 @@ except ImportError as e:
     print(f"  ❌ Import error: {e}")
     sys.exit(1)
 
-# Step 4: Set up ngrok for Streamlit
-print("\n[NGROK SETUP] Setting up tunnel for Streamlit...")
-print("Note: You'll need to provide your ngrok auth token later")
-print("Get your free token at: https://dashboard.ngrok.com/get-started/your-authtoken")
-
 print("\n" + "=" * 80)
 print("SETUP COMPLETE! ✅")
 print("=" * 80)
 print("\n📋 NEXT STEPS:")
-print("1. Run '2_data_loading.py' to load and prepare the dataset")
+print("1. Run '2_data_preprocessing.py' to load and prepare the dataset")
 print("2. Run '3_model_training.py' to train the model")
 print("3. Run '4_model_evaluation.py' to evaluate performance")
-print("4. Run '5_launch_app.py' to start the Streamlit dashboard")
+print("4. Run '5_streamlit_app.py' to create the app file")
+print("5. Run '6_launch_app.py' to launch the dashboard")
 print("\n⚠️  IMPORTANT: Run cells in order!")
 print("=" * 80)
