@@ -1,5 +1,5 @@
 """
-Breast Cancer Detection System - Google Colab Setup (FIXED)
+Breast Cancer Detection System - Google Colab Setup
 Run this FIRST in Google Colab to set up everything
 """
 
@@ -24,7 +24,7 @@ print("\n[4/6] Installing visualization tools...")
 !pip install -q plotly
 
 print("\n[5/6] Installing Streamlit...")
-!pip install -q streamlit streamlit-option-menu
+!pip install -q streamlit streamlit-option-menu pyngrok
 
 print("\n✅ All dependencies installed successfully!")
 
@@ -58,13 +58,13 @@ try:
     import numpy as np
     from PIL import Image
     import kagglehub
-    
+
     print(f"  ✅ TensorFlow version: {tf.__version__}")
     print(f"  ✅ OpenCV version: {cv2.__version__}")
     print(f"  ✅ NumPy version: {np.__version__}")
     print(f"  ✅ Pandas version: {pd.__version__}")
     print("  ✅ All libraries imported successfully!")
-    
+
 except ImportError as e:
     print(f"  ❌ Import error: {e}")
     sys.exit(1)
@@ -76,7 +76,7 @@ print("\n📋 NEXT STEPS:")
 print("1. Run '2_data_preprocessing.py' to load and prepare the dataset")
 print("2. Run '3_model_training.py' to train the model")
 print("3. Run '4_model_evaluation.py' to evaluate performance")
-print("4. Run '5_streamlit_app.py' to create the app file")
+print("4. Run '5_streamlit_app.py' to create the web app")
 print("5. Run '6_launch_app.py' to launch the dashboard")
 print("\n⚠️  IMPORTANT: Run cells in order!")
 print("=" * 80)

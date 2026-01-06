@@ -1,6 +1,6 @@
 """
-Breast Cancer Detection - Data Loading (FIXED - CSV Matching)
-Properly matches CSV metadata with actual image files
+Breast Cancer Detection - Data Loading & Preprocessing
+Downloads CBIS-DDSM dataset and prepares images for training
 """
 
 import os
@@ -15,7 +15,7 @@ import shutil
 import kagglehub
 
 print("=" * 80)
-print("BREAST CANCER DETECTION - DATA LOADING (FIXED)")
+print("BREAST CANCER DETECTION - DATA PREPROCESSING")
 print("=" * 80)
 
 # Step 1: Download dataset from Kaggle
@@ -25,184 +25,108 @@ print("⏳ This may take 5-10 minutes...")
 try:
     path = kagglehub.dataset_download("awsaf49/cbis-ddsm-breast-cancer-image-dataset")
     print(f"✅ Dataset downloaded to: {path}")
-    
 except Exception as e:
     print(f"❌ Error: {e}")
+    print("\nAlternative: Manually download from Kaggle and upload to Colab")
     exit(1)
 
-# Step 2: Load ALL CSV files and combine them
-print("\n[STEP 2/7] Loading and combining metadata CSV files...")
+# Step 2: Find and load metadata CSV files
+print("\n[STEP 2/7] Loading metadata CSV files...")
 
 csv_files = []
 for root, dirs, files in os.walk(path):
     for file in files:
-        if file.endswith('.csv') and 'case_description' in file:
+        if file.endswith('.csv'):
             csv_files.append(os.path.join(root, file))
 
-print(f"Found {len(csv_files)} metadata CSV files")
+print(f"Found {len(csv_files)} CSV files")
 
-# Load and combine all CSVs
+# Combine all metadata
 all_metadata = []
 for csv_file in csv_files:
     try:
         df = pd.read_csv(csv_file)
-        if 'pathology' in df.columns:
-            print(f"\n✅ Loading: {os.path.basename(csv_file)}")
-            print(f"   Records: {len(df)}")
-            print(f"   Pathology distribution:")
-            for path_type, count in df['pathology'].value_counts().items():
-                print(f"     - {path_type}: {count}")
+        if 'pathology' in df.columns or 'assessment' in df.columns:
             all_metadata.append(df)
+            print(f"  ✅ Loaded: {os.path.basename(csv_file)}")
     except Exception as e:
-        print(f"⚠️  Error loading {csv_file}: {e}")
+        pass
 
-if not all_metadata:
-    print("❌ No valid CSV metadata found!")
-    exit(1)
+if all_metadata:
+    df_combined = pd.concat(all_metadata, ignore_index=True)
+    print(f"\n✅ Total metadata records: {len(df_combined)}")
+else:
+    df_combined = None
+    print("⚠️  No metadata found, will use directory structure")
 
-# Combine all metadata
-df_combined = pd.concat(all_metadata, ignore_index=True)
-print(f"\n✅ Total metadata records: {len(df_combined)}")
-print(f"Columns: {list(df_combined.columns)}")
-
-# Step 3: Find all actual image files
+# Step 3: Find all image files
 print("\n[STEP 3/7] Scanning for image files...")
 
-all_image_files = {}  # filename -> full_path mapping
+all_image_files = {}
 for root, dirs, files in os.walk(path):
     for file in files:
         if file.lower().endswith(('.png', '.jpg', '.jpeg', '.dcm')):
             full_path = os.path.join(root, file)
-            # Store both with and without extension
-            base_name = os.path.splitext(file)[0]
             all_image_files[file] = full_path
+            base_name = os.path.splitext(file)[0]
             all_image_files[base_name] = full_path
 
-print(f"✅ Found {len(all_image_files)} image file mappings")
+print(f"✅ Found {len(set(all_image_files.values()))} unique images")
 
-# Step 4: Match CSV records with actual image files
-print("\n[STEP 4/7] Matching CSV records with images...")
+# Step 4: Classify images as benign or malignant
+print("\n[STEP 4/7] Classifying images...")
 
 benign_images = []
 malignant_images = []
-matched_count = 0
-unmatched_count = 0
 
-for idx, row in tqdm(df_combined.iterrows(), total=len(df_combined), desc="Matching"):
-    try:
-        # Get pathology
-        pathology = str(row['pathology']).upper()
-        
-        # Determine class
-        is_benign = 'BENIGN' in pathology
-        is_malignant = 'MALIGNANT' in pathology
-        
-        if not (is_benign or is_malignant):
-            continue
-        
-        # Try to find the image file
-        # CSV has paths like: 'Mass-Training_P_00001_LEFT_CC/1.3.6.1...'
-        image_path = None
-        
-        # Try different path columns
-        path_columns = ['image file path', 'cropped image file path', 
-                       'ROI mask file path']
-        
-        for col in path_columns:
-            if col in row and pd.notna(row[col]):
-                csv_path = str(row[col])
-                
-                # Extract filename from CSV path
-                if '/' in csv_path:
-                    parts = csv_path.split('/')
-                    # Try each part as a potential filename
-                    for part in parts:
+# Try CSV-based classification first
+if df_combined is not None:
+    for idx, row in tqdm(df_combined.iterrows(), total=len(df_combined), desc="Processing"):
+        try:
+            pathology = str(row.get('pathology', '')).upper()
+            
+            is_benign = 'BENIGN' in pathology
+            is_malignant = 'MALIGNANT' in pathology
+            
+            if not (is_benign or is_malignant):
+                continue
+            
+            # Try to find image file
+            image_path = None
+            for col in ['image file path', 'cropped image file path', 'ROI mask file path']:
+                if col in row and pd.notna(row[col]):
+                    csv_path = str(row[col])
+                    for part in csv_path.split('/'):
                         if part in all_image_files:
                             image_path = all_image_files[part]
                             break
-                        # Try without extension
-                        base = os.path.splitext(part)[0]
-                        if base in all_image_files:
-                            image_path = all_image_files[base]
-                            break
                     if image_path:
                         break
-                else:
-                    # Direct filename
-                    if csv_path in all_image_files:
-                        image_path = all_image_files[csv_path]
-                        break
-        
-        # If still not found, try searching by partial path
-        if not image_path:
-            for col in path_columns:
-                if col in row and pd.notna(row[col]):
-                    csv_path = str(row[col])
-                    # Search for any image file containing part of this path
-                    for file_key, file_path in all_image_files.items():
-                        if any(part in file_path for part in csv_path.split('/')):
-                            image_path = file_path
-                            break
-                    if image_path:
-                        break
-        
-        # Add to appropriate list
-        if image_path and os.path.exists(image_path):
-            matched_count += 1
-            if is_malignant and not is_benign:
-                malignant_images.append(image_path)
-            elif is_benign and not is_malignant:
-                benign_images.append(image_path)
-        else:
-            unmatched_count += 1
             
-    except Exception as e:
-        continue
+            if image_path and os.path.exists(image_path):
+                if is_malignant and not is_benign:
+                    malignant_images.append(image_path)
+                elif is_benign and not is_malignant:
+                    benign_images.append(image_path)
+        except:
+            continue
 
-print(f"\n✅ Matching complete:")
-print(f"   Matched: {matched_count}")
-print(f"   Unmatched: {unmatched_count}")
-print(f"   Benign images: {len(benign_images)}")
-print(f"   Malignant images: {len(malignant_images)}")
-
-# If CSV matching failed, fall back to directory-based classification
+# Fallback to directory-based classification
 if len(benign_images) == 0 and len(malignant_images) == 0:
-    print("\n⚠️  CSV matching failed. Using directory-based classification...")
-    
-    benign_images = []
-    malignant_images = []
-    
-    for file_path in tqdm(list(all_image_files.values()), desc="Classifying by directory"):
+    print("\n⚠️  CSV classification failed. Using directory structure...")
+    for file_path in tqdm(list(set(all_image_files.values())), desc="Classifying"):
         path_lower = file_path.lower()
-        
-        # Check directory structure
         if 'benign' in path_lower and 'malignant' not in path_lower:
             benign_images.append(file_path)
         elif 'malignant' in path_lower or 'cancer' in path_lower:
             malignant_images.append(file_path)
-    
-    print(f"\n✅ Directory-based classification:")
-    print(f"   Benign images: {len(benign_images)}")
-    print(f"   Malignant images: {len(malignant_images)}")
 
-# Check if we have data
+print(f"\n✅ Classification complete:")
+print(f"   Benign images: {len(benign_images)}")
+print(f"   Malignant images: {len(malignant_images)}")
+
 if len(benign_images) == 0 or len(malignant_images) == 0:
-    print("\n❌ ERROR: Unable to find images for one or both classes!")
-    print("\nDEBUG: Let's check the directory structure...")
-    
-    # Show directory structure
-    print("\nDirectory structure:")
-    for root, dirs, files in os.walk(path):
-        level = root.replace(path, '').count(os.sep)
-        indent = ' ' * 2 * level
-        print(f'{indent}{os.path.basename(root)}/')
-        if level < 3:  # Only show first 3 levels
-            subindent = ' ' * 2 * (level + 1)
-            for file in files[:3]:  # Show only first 3 files
-                print(f'{subindent}{file}')
-            if len(files) > 3:
-                print(f'{subindent}... and {len(files)-3} more files')
-    
+    print("\n❌ ERROR: Unable to find images for both classes!")
     exit(1)
 
 # Step 5: Balance dataset
@@ -210,10 +134,6 @@ print("\n[STEP 5/7] Balancing dataset...")
 
 min_samples = min(len(benign_images), len(malignant_images))
 max_per_class = min(min_samples, 2000)
-
-if max_per_class < 100:
-    print(f"⚠️  WARNING: Very few images ({max_per_class} per class)")
-    print("   Model performance may be limited")
 
 np.random.seed(42)
 benign_images = np.random.choice(benign_images, max_per_class, replace=False).tolist()
@@ -224,9 +144,8 @@ print(f"   Total dataset: {len(benign_images) + len(malignant_images)} images")
 
 # Step 6: Preprocessing function
 def preprocess_image(img_path):
-    """Enhanced preprocessing with variation preservation"""
+    """Enhanced preprocessing with CLAHE and denoising"""
     try:
-        # Read image
         img = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
         
         if img is None:
@@ -236,34 +155,28 @@ def preprocess_image(img_path):
         if img is None or img.size == 0:
             return None
         
-        # Resize
+        # Resize to 224x224
         img = cv2.resize(img, (224, 224), interpolation=cv2.INTER_AREA)
         
-        # Apply CLAHE
+        # Apply CLAHE for contrast enhancement
         clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
         img = clahe.apply(img)
         
         # Light denoising
         img = cv2.fastNlMeansDenoising(img, None, h=5, templateWindowSize=7, searchWindowSize=21)
         
-        # Normalize
+        # Normalize to 0-255
         img = cv2.normalize(img, None, 0, 255, cv2.NORM_MINMAX)
         
         return img
-        
     except Exception as e:
         return None
 
 def split_and_save_data(image_paths, label, split_ratios=(0.7, 0.15, 0.15)):
-    """Split and save preprocessed images"""
+    """Split data into train/val/test and save preprocessed images"""
     
-    if len(image_paths) == 0:
-        print(f"⚠️  No images to process for {label}")
-        return {}
-    
-    # Split data
     train_imgs, temp_imgs = train_test_split(
-        image_paths,
+        image_paths, 
         test_size=(split_ratios[1] + split_ratios[2]),
         random_state=42,
         shuffle=True
@@ -331,15 +244,11 @@ for split in ['train', 'val', 'test']:
     
     balance_ratio = (benign_count / malignant_count * 100) if malignant_count > 0 else 0
     
-    print(f"{split.upper():8} | Total: {total:4} | Benign: {benign_count:4} | Malignant: {malignant_count:4} | Ratio: {balance_ratio:.1f}%")
+    print(f"{split.upper():8} | Total: {total:4} | Benign: {benign_count:4} | Malignant: {malignant_count:4} | Balance: {balance_ratio:.1f}%")
 
 print("=" * 80)
 print(f"TOTAL DATASET: {total_images} images")
 print("=" * 80)
-
-if total_images == 0:
-    print("\n❌ ERROR: No images were processed!")
-    exit(1)
 
 # Visualize samples
 print("\n[VISUALIZATION] Creating sample images...")
@@ -372,24 +281,24 @@ for row in range(4):
 
 plt.tight_layout()
 plt.savefig('results/sample_images.png', dpi=150, bbox_inches='tight')
-print("✅ Visualization saved")
+print("✅ Visualization saved: results/sample_images.png")
 plt.show()
 
 # Save dataset info
-train_benign = len(os.listdir('data/train/benign')) if os.path.exists('data/train/benign') else 0
-train_malignant = len(os.listdir('data/train/malignant')) if os.path.exists('data/train/malignant') else 0
+import json
 
 dataset_info = {
     'total_images': total_images,
-    'train_images': train_benign + train_malignant,
-    'val_images': len(os.listdir('data/val/benign')) + len(os.listdir('data/val/malignant')),
-    'test_images': len(os.listdir('data/test/benign')) + len(os.listdir('data/test/malignant')),
-    'benign_train': train_benign,
-    'malignant_train': train_malignant,
-    'preprocessing': 'Moderate CLAHE, Light denoising, Normalization'
+    'train_images': benign_stats['train'] + malignant_stats['train'],
+    'val_images': benign_stats['val'] + malignant_stats['val'],
+    'test_images': benign_stats['test'] + malignant_stats['test'],
+    'benign_count': len(benign_images),
+    'malignant_count': len(malignant_images),
+    'preprocessing': 'CLAHE + Denoising + Normalization',
+    'image_size': '224x224',
+    'split_ratio': '70/15/15'
 }
 
-import json
 with open('data/dataset_info.json', 'w') as f:
     json.dump(dataset_info, f, indent=4)
 

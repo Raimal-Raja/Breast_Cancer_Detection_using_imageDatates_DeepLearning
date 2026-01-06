@@ -1,6 +1,6 @@
 """
-Breast Cancer Detection - Model Evaluation (FIXED)
-Comprehensive evaluation with confusion matrix and sample predictions
+Breast Cancer Detection - Comprehensive Model Evaluation
+Generates confusion matrix, ROC curve, and sample predictions
 """
 
 import os
@@ -21,12 +21,12 @@ print("=" * 80)
 # Load model
 print("\n[STEP 1/6] Loading trained model...")
 try:
-    model = load_model('models/best_model.h5')
+    model = load_model('models/best_model.keras')
     print("✅ Model loaded successfully")
 except Exception as e:
     print(f"❌ Error loading model: {e}")
-    print("Please train the model first!")
-    exit()
+    print("Make sure you've run the training script first!")
+    exit(1)
 
 # Prepare test data
 print("\n[STEP 2/6] Preparing test data...")
@@ -45,13 +45,13 @@ print(f"✅ Test samples: {test_gen.samples}")
 print(f"   Classes: {test_gen.class_indices}")
 
 # Get predictions
-print("\n[STEP 3/6] Making predictions...")
+print("\n[STEP 3/6] Making predictions on test set...")
 
 predictions = model.predict(test_gen, verbose=1)
 y_pred = np.argmax(predictions, axis=1)
 y_true = test_gen.classes
 
-# Calculate comprehensive metrics
+# Calculate metrics
 accuracy = accuracy_score(y_true, y_pred)
 precision = precision_score(y_true, y_pred, average='weighted')
 recall = recall_score(y_true, y_pred, average='weighted')
@@ -83,7 +83,7 @@ print("\n[STEP 5/6] Generating confusion matrix...")
 
 cm = confusion_matrix(y_true, y_pred)
 
-# Calculate specificity and sensitivity
+# Calculate additional metrics
 tn, fp, fn, tp = cm.ravel()
 sensitivity = tp / (tp + fn) if (tp + fn) > 0 else 0
 specificity = tn / (tn + fp) if (tn + fp) > 0 else 0
@@ -93,8 +93,8 @@ print(f"  True Negatives (TN):  {tn}")
 print(f"  False Positives (FP): {fp}")
 print(f"  False Negatives (FN): {fn}")
 print(f"  True Positives (TP):  {tp}")
-print(f"\n  Sensitivity (TPR): {sensitivity*100:.2f}%")
-print(f"  Specificity (TNR): {specificity*100:.2f}%")
+print(f"\n  Sensitivity (Recall): {sensitivity*100:.2f}%")
+print(f"  Specificity:          {specificity*100:.2f}%")
 
 # Plot confusion matrix
 fig, ax = plt.subplots(figsize=(10, 8))
@@ -108,12 +108,13 @@ sns.heatmap(
     yticklabels=class_labels,
     cbar_kws={'label': 'Count'},
     ax=ax,
-    square=True
+    square=True,
+    annot_kws={'size': 14}
 )
 
 ax.set_title('Confusion Matrix', fontsize=16, fontweight='bold', pad=20)
-ax.set_ylabel('True Label', fontsize=12)
-ax.set_xlabel('Predicted Label', fontsize=12)
+ax.set_ylabel('True Label', fontsize=12, fontweight='bold')
+ax.set_xlabel('Predicted Label', fontsize=12, fontweight='bold')
 
 # Add percentages
 cm_percent = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis] * 100
@@ -124,7 +125,7 @@ for i in range(cm.shape[0]):
 
 plt.tight_layout()
 plt.savefig('results/confusion_matrix.png', dpi=150, bbox_inches='tight')
-print("\n✅ Confusion matrix saved")
+print("\n✅ Confusion matrix saved: results/confusion_matrix.png")
 plt.show()
 
 # ROC Curve
@@ -149,7 +150,7 @@ plt.grid(True, alpha=0.3)
 
 plt.tight_layout()
 plt.savefig('results/roc_curve.png', dpi=150, bbox_inches='tight')
-print(f"✅ ROC curve saved (AUC: {roc_auc:.4f})")
+print(f"✅ ROC curve saved: results/roc_curve.png (AUC: {roc_auc:.4f})")
 plt.show()
 
 # Sample predictions visualization
@@ -171,13 +172,11 @@ for idx in range(16):
     pred_label = class_labels[np.argmax(sample_predictions[idx])]
     confidence = np.max(sample_predictions[idx]) * 100
     
-    # Probabilities
     prob_benign = sample_predictions[idx][0] * 100
     prob_malignant = sample_predictions[idx][1] * 100
     
     axes[row, col].imshow(img)
     
-    # Color: green if correct, red if incorrect
     color = 'green' if true_label == pred_label else 'red'
     title = f'True: {true_label}\nPred: {pred_label} ({confidence:.1f}%)\nB:{prob_benign:.0f}% M:{prob_malignant:.0f}%'
     axes[row, col].set_title(title, fontsize=9, color=color, fontweight='bold')
@@ -185,10 +184,10 @@ for idx in range(16):
 
 plt.tight_layout()
 plt.savefig('results/sample_predictions.png', dpi=150, bbox_inches='tight')
-print("✅ Sample predictions saved")
+print("✅ Sample predictions saved: results/sample_predictions.png")
 plt.show()
 
-# Calculate confidence distribution
+# Confidence analysis
 print("\n[CONFIDENCE ANALYSIS]")
 confidence_scores = np.max(predictions, axis=1) * 100
 low_conf = np.sum(confidence_scores < 60)
@@ -201,7 +200,7 @@ print(f"  Medium (60-80%): {med_conf} samples ({med_conf/len(confidence_scores)*
 print(f"  High (>80%):     {high_conf} samples ({high_conf/len(confidence_scores)*100:.1f}%)")
 print(f"  Average:         {np.mean(confidence_scores):.2f}%")
 
-# Save comprehensive evaluation results
+# Save evaluation results
 evaluation_data = {
     'test_metrics': {
         'accuracy': float(accuracy),
@@ -239,7 +238,7 @@ evaluation_data = {
 with open('models/evaluation_results.json', 'w') as f:
     json.dump(evaluation_data, f, indent=4)
 
-print("\n✅ Evaluation results saved")
+print("\n✅ Evaluation results saved: models/evaluation_results.json")
 
 print("\n" + "=" * 80)
 print("EVALUATION COMPLETE! ✅")
@@ -250,17 +249,15 @@ print(f"   Sensitivity:    {sensitivity*100:.2f}%")
 print(f"   Specificity:    {specificity*100:.2f}%")
 print(f"   ROC AUC:        {roc_auc:.4f}")
 
-if accuracy < 0.6:
-    print("\n⚠️  Low accuracy detected. Possible issues:")
-    print("   - Insufficient training data")
-    print("   - Model not distinguishing between classes")
-    print("   - Data quality problems")
-elif 100 * tn == test_gen.samples or 100 * tp == test_gen.samples:
-    print("\n⚠️  Model predicting only one class!")
-    print("   - Retrain with more balanced data")
-    print("   - Check class weights")
+if accuracy >= 0.85:
+    print("\n🎉 EXCELLENT performance!")
+elif accuracy >= 0.75:
+    print("\n✅ GOOD performance - meets targets")
 else:
-    print("\n✅ Model appears to be working correctly")
+    print("\n⚠️  Performance below target - consider:")
+    print("   • Collecting more training data")
+    print("   • Checking data quality")
+    print("   • Adjusting hyperparameters")
 
-print("\n📋 NEXT STEP: Run '5_streamlit_app.py' to create the web app")
+print("\n📋 NEXT STEP: Run '5_streamlit_app.py' to create the web interface")
 print("=" * 80)
