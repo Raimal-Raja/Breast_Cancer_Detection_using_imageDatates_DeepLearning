@@ -1,0 +1,195 @@
+Drive already mounted at /content/drive; to attempt to forcibly remount, call drive.mount("/content/drive", force_remount=True).
+======================================================================
+BREAST CANCER DETECTION - GOOGLE COLAB
+======================================================================
+TensorFlow version: 2.19.0
+GPU Available: [PhysicalDevice(name='/physical_device:GPU:0', device_type='GPU')]
+======================================================================
+
+✓ Kaggle API configured successfully!
+
+Downloading Breast Histopathology Images dataset...
+This may take 5-10 minutes depending on your internet speed...
+Dataset URL: https://www.kaggle.com/datasets/paultimothymooney/breast-histopathology-images
+License(s): CC0-1.0
+breast-histopathology-images.zip: Skipping, found more recently modified local copy (use --force to force download)
+
+✓ Dataset downloaded!
+
+Extracting dataset...
+replace /content/dataset/10253/0/10253_idx5_x1001_y1001_class0.png? [y]es, [n]o, [A]ll, [N]one, [r]ename: A
+✓ Dataset extracted successfully!
+
+✓ Created folder structure in Google Drive:
+  - /content/drive/MyDrive/BreastCancerDetection
+  - /content/drive/MyDrive/BreastCancerDetection/models
+  - /content/drive/MyDrive/BreastCancerDetection/results
+
+======================================================================
+EXPLORING DATASET
+======================================================================
+
+Total Images: 555,048
+IDC Positive (Class 1): 0 (0.00%)
+No IDC (Class 0): 0 (0.00%)
+
+✓ Dataset has 555,048 images (Requirement: 20,000+)
+
+======================================================================
+LOADING DATASET
+======================================================================
+Loading dataset information...
+Found 279 patient directories
+Loading images: 100%|██████████| 279/279 [00:00<00:00, 630.38it/s]
+
+✓ Loaded Images: 277,524
+  Positive samples (IDC): 78,786
+  Negative samples (No IDC): 198,738
+  Class balance: 28.39% positive
+
+✓ Dataset info saved to Google Drive
+
+======================================================================
+SPLITTING DATA
+======================================================================
+Train samples: 194,266
+Validation samples: 41,629
+Test samples: 41,629
+
+======================================================================
+CREATING DATA GENERATORS
+======================================================================
+Image Size: 96x96
+Batch Size: 64
+Found 194266 validated image filenames belonging to 2 classes.
+Found 41629 validated image filenames belonging to 2 classes.
+Found 41629 validated image filenames belonging to 2 classes.
+
+✓ Data generators created successfully!
+
+======================================================================
+BUILDING AUTOML MODEL
+======================================================================
+Attempting EfficientNetB0...
+✓ EfficientNetB0 loaded!
+
+✓ Model Type: EFFICIENTNET
+Model: "sequential_1"
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━┓
+┃ Layer (type)                    ┃ Output Shape           ┃       Param # ┃
+┡━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━┩
+│ efficientnetb0 (Functional)     │ (None, 3, 3, 1280)     │     4,049,571 │
+├─────────────────────────────────┼────────────────────────┼───────────────┤
+│ global_average_pooling2d_1      │ (None, 1280)           │             0 │
+│ (GlobalAveragePooling2D)        │                        │               │
+├─────────────────────────────────┼────────────────────────┼───────────────┤
+│ batch_normalization_3           │ (None, 1280)           │         5,120 │
+│ (BatchNormalization)            │                        │               │
+├─────────────────────────────────┼────────────────────────┼───────────────┤
+│ dropout_4 (Dropout)             │ (None, 1280)           │             0 │
+├─────────────────────────────────┼────────────────────────┼───────────────┤
+│ dense_4 (Dense)                 │ (None, 512)            │       655,872 │
+├─────────────────────────────────┼────────────────────────┼───────────────┤
+│ batch_normalization_4           │ (None, 512)            │         2,048 │
+│ (BatchNormalization)            │                        │               │
+├─────────────────────────────────┼────────────────────────┼───────────────┤
+│ dropout_5 (Dropout)             │ (None, 512)            │             0 │
+├─────────────────────────────────┼────────────────────────┼───────────────┤
+│ dense_5 (Dense)                 │ (None, 256)            │       131,328 │
+├─────────────────────────────────┼────────────────────────┼───────────────┤
+│ batch_normalization_5           │ (None, 256)            │         1,024 │
+│ (BatchNormalization)            │                        │               │
+├─────────────────────────────────┼────────────────────────┼───────────────┤
+│ dropout_6 (Dropout)             │ (None, 256)            │             0 │
+├─────────────────────────────────┼────────────────────────┼───────────────┤
+│ dense_6 (Dense)                 │ (None, 128)            │        32,896 │
+├─────────────────────────────────┼────────────────────────┼───────────────┤
+│ dropout_7 (Dropout)             │ (None, 128)            │             0 │
+├─────────────────────────────────┼────────────────────────┼───────────────┤
+│ dense_7 (Dense)                 │ (None, 1)              │           129 │
+└─────────────────────────────────┴────────────────────────┴───────────────┘
+ Total params: 4,877,988 (18.61 MB)
+ Trainable params: 824,321 (3.14 MB)
+ Non-trainable params: 4,053,667 (15.46 MB)
+
+======================================================================
+PHASE 1: INITIAL TRAINING
+======================================================================
+/usr/local/lib/python3.12/dist-packages/keras/src/trainers/data_adapters/py_dataset_adapter.py:121: UserWarning: Your `PyDataset` class should call `super().__init__(**kwargs)` in its constructor. `**kwargs` can include `workers`, `use_multiprocessing`, `max_queue_size`. Do not pass these arguments to `fit()`, as they will be ignored.
+  self._warn_if_super_not_called()
+Epoch 1/5
+3036/3036 ━━━━━━━━━━━━━━━━━━━━ 0s 232ms/step - accuracy: 0.6970 - auc: 0.5211 - loss: 0.6306 - precision: 0.2957 - recall: 0.0511
+Epoch 1: val_accuracy improved from -inf to 0.71611, saving model to /content/drive/MyDrive/BreastCancerDetection/models/best_model.h5
+WARNING:absl:You are saving your model as an HDF5 file via `model.save()` or `keras.saving.save_model(model)`. This file format is considered legacy. We recommend using instead the native Keras format, e.g. `model.save('my_model.keras')` or `keras.saving.save_model(model, 'my_model.keras')`. 
+3036/3036 ━━━━━━━━━━━━━━━━━━━━ 790s 248ms/step - accuracy: 0.6970 - auc: 0.5211 - loss: 0.6306 - precision: 0.2957 - recall: 0.0510 - val_accuracy: 0.7161 - val_auc: 0.7178 - val_loss: 0.7192 - val_precision: 0.0000e+00 - val_recall: 0.0000e+00 - learning_rate: 0.0010
+Epoch 2/5
+3036/3036 ━━━━━━━━━━━━━━━━━━━━ 0s 203ms/step - accuracy: 0.7172 - auc: 0.5959 - loss: 0.5841 - precision: 0.4860 - recall: 0.0204
+Epoch 2: val_accuracy did not improve from 0.71611
+3036/3036 ━━━━━━━━━━━━━━━━━━━━ 644s 212ms/step - accuracy: 0.7172 - auc: 0.5959 - loss: 0.5841 - precision: 0.4860 - recall: 0.0204 - val_accuracy: 0.7161 - val_auc: 0.7569 - val_loss: 0.6080 - val_precision: 0.0000e+00 - val_recall: 0.0000e+00 - learning_rate: 0.0010
+Epoch 3/5
+3036/3036 ━━━━━━━━━━━━━━━━━━━━ 0s 204ms/step - accuracy: 0.7266 - auc: 0.6275 - loss: 0.5695 - precision: 0.5786 - recall: 0.0967
+Epoch 3: val_accuracy did not improve from 0.71611
+3036/3036 ━━━━━━━━━━━━━━━━━━━━ 645s 212ms/step - accuracy: 0.7266 - auc: 0.6275 - loss: 0.5695 - precision: 0.5786 - recall: 0.0967 - val_accuracy: 0.7161 - val_auc: 0.7725 - val_loss: 0.6417 - val_precision: 0.0000e+00 - val_recall: 0.0000e+00 - learning_rate: 0.0010
+Epoch 4/5
+3036/3036 ━━━━━━━━━━━━━━━━━━━━ 0s 204ms/step - accuracy: 0.7280 - auc: 0.6458 - loss: 0.5644 - precision: 0.5992 - recall: 0.1224
+Epoch 4: val_accuracy did not improve from 0.71611
+3036/3036 ━━━━━━━━━━━━━━━━━━━━ 644s 212ms/step - accuracy: 0.7280 - auc: 0.6458 - loss: 0.5644 - precision: 0.5992 - recall: 0.1224 - val_accuracy: 0.7161 - val_auc: 0.7730 - val_loss: 0.6031 - val_precision: 0.0000e+00 - val_recall: 0.0000e+00 - learning_rate: 0.0010
+Epoch 5/5
+3036/3036 ━━━━━━━━━━━━━━━━━━━━ 0s 199ms/step - accuracy: 0.7295 - auc: 0.6484 - loss: 0.5636 - precision: 0.6143 - recall: 0.1291
+Epoch 5: val_accuracy did not improve from 0.71611
+3036/3036 ━━━━━━━━━━━━━━━━━━━━ 629s 207ms/step - accuracy: 0.7295 - auc: 0.6484 - loss: 0.5636 - precision: 0.6143 - recall: 0.1291 - val_accuracy: 0.7161 - val_auc: 0.7909 - val_loss: 0.6280 - val_precision: 0.0000e+00 - val_recall: 0.0000e+00 - learning_rate: 0.0010
+Restoring model weights from the end of the best epoch: 1.
+
+======================================================================
+PHASE 2: FINE-TUNING
+======================================================================
+Unfroze 119 layers
+Epoch 1/5
+3036/3036 ━━━━━━━━━━━━━━━━━━━━ 0s 223ms/step - accuracy: 0.7866 - auc: 0.8032 - loss: 0.4649 - precision: 0.6825 - recall: 0.4375
+Epoch 1: val_accuracy improved from 0.71611 to 0.71786, saving model to /content/drive/MyDrive/BreastCancerDetection/models/best_model.h5
+WARNING:absl:You are saving your model as an HDF5 file via `model.save()` or `keras.saving.save_model(model)`. This file format is considered legacy. We recommend using instead the native Keras format, e.g. `model.save('my_model.keras')` or `keras.saving.save_model(model, 'my_model.keras')`. 
+3036/3036 ━━━━━━━━━━━━━━━━━━━━ 771s 236ms/step - accuracy: 0.7866 - auc: 0.8032 - loss: 0.4649 - precision: 0.6825 - recall: 0.4375 - val_accuracy: 0.7179 - val_auc: 0.7903 - val_loss: 0.9360 - val_precision: 0.7920 - val_recall: 0.0084 - learning_rate: 1.0000e-04
+Epoch 2/5
+3036/3036 ━━━━━━━━━━━━━━━━━━━━ 0s 214ms/step - accuracy: 0.8251 - auc: 0.8670 - loss: 0.3997 - precision: 0.7252 - recall: 0.6193
+Epoch 2: val_accuracy did not improve from 0.71786
+3036/3036 ━━━━━━━━━━━━━━━━━━━━ 675s 222ms/step - accuracy: 0.8251 - auc: 0.8670 - loss: 0.3997 - precision: 0.7252 - recall: 0.6193 - val_accuracy: 0.7164 - val_auc: 0.6689 - val_loss: 1.3312 - val_precision: 0.7308 - val_recall: 0.0016 - learning_rate: 1.0000e-04
+Epoch 3/5
+3036/3036 ━━━━━━━━━━━━━━━━━━━━ 0s 214ms/step - accuracy: 0.8352 - auc: 0.8809 - loss: 0.3811 - precision: 0.7398 - recall: 0.6496
+Epoch 3: val_accuracy improved from 0.71786 to 0.73050, saving model to /content/drive/MyDrive/BreastCancerDetection/models/best_model.h5
+WARNING:absl:You are saving your model as an HDF5 file via `model.save()` or `keras.saving.save_model(model)`. This file format is considered legacy. We recommend using instead the native Keras format, e.g. `model.save('my_model.keras')` or `keras.saving.save_model(model, 'my_model.keras')`. 
+3036/3036 ━━━━━━━━━━━━━━━━━━━━ 678s 223ms/step - accuracy: 0.8352 - auc: 0.8809 - loss: 0.3811 - precision: 0.7398 - recall: 0.6496 - val_accuracy: 0.7305 - val_auc: 0.6206 - val_loss: 0.8456 - val_precision: 0.6832 - val_recall: 0.0945 - learning_rate: 1.0000e-04
+Epoch 4/5
+3036/3036 ━━━━━━━━━━━━━━━━━━━━ 0s 219ms/step - accuracy: 0.8405 - auc: 0.8876 - loss: 0.3703 - precision: 0.7441 - recall: 0.6663
+Epoch 4: val_accuracy improved from 0.73050 to 0.74768, saving model to /content/drive/MyDrive/BreastCancerDetection/models/best_model.h5
+WARNING:absl:You are saving your model as an HDF5 file via `model.save()` or `keras.saving.save_model(model)`. This file format is considered legacy. We recommend using instead the native Keras format, e.g. `model.save('my_model.keras')` or `keras.saving.save_model(model, 'my_model.keras')`. 
+3036/3036 ━━━━━━━━━━━━━━━━━━━━ 708s 233ms/step - accuracy: 0.8405 - auc: 0.8876 - loss: 0.3703 - precision: 0.7441 - recall: 0.6663 - val_accuracy: 0.7477 - val_auc: 0.7786 - val_loss: 0.9559 - val_precision: 0.7664 - val_recall: 0.1599 - learning_rate: 1.0000e-04
+Epoch 5/5
+3036/3036 ━━━━━━━━━━━━━━━━━━━━ 0s 219ms/step - accuracy: 0.8429 - auc: 0.8921 - loss: 0.3639 - precision: 0.7492 - recall: 0.6706
+Epoch 5: val_accuracy improved from 0.74768 to 0.76219, saving model to /content/drive/MyDrive/BreastCancerDetection/models/best_model.h5
+WARNING:absl:You are saving your model as an HDF5 file via `model.save()` or `keras.saving.save_model(model)`. This file format is considered legacy. We recommend using instead the native Keras format, e.g. `model.save('my_model.keras')` or `keras.saving.save_model(model, 'my_model.keras')`. 
+3036/3036 ━━━━━━━━━━━━━━━━━━━━ 693s 228ms/step - accuracy: 0.8429 - auc: 0.8921 - loss: 0.3639 - precision: 0.7492 - recall: 0.6706 - val_accuracy: 0.7622 - val_auc: 0.8029 - val_loss: 0.6350 - val_precision: 0.7293 - val_recall: 0.2581 - learning_rate: 1.0000e-04
+Restoring model weights from the end of the best epoch: 5.
+
+======================================================================
+EVALUATING MODEL ON TEST SET
+======================================================================
+WARNING:absl:Compiled the loaded model, but the compiled metrics have yet to be built. `model.compile_metrics` will be empty until you train or evaluate the model.
+651/651 ━━━━━━━━━━━━━━━━━━━━ 62s 80ms/step - accuracy: 0.7138 - auc: 0.5000 - loss: 24.0914 - precision: 0.0000e+00 - recall: 0.0000e+00
+
+======================================================================
+FINAL TEST RESULTS
+======================================================================
+Test Accuracy:  71.61%
+Test AUC:       0.5000
+Test Precision: 0.0000
+Test Recall:    0.0000
+---------------------------------------------------------------------------
+ZeroDivisionError                         Traceback (most recent call last)
+/tmp/ipython-input-1074337582.py in <cell line: 0>()
+    500 print(f"Test Precision: {test_precision:.4f}")
+    501 print(f"Test Recall:    {test_recall:.4f}")
+--> 502 print(f"Test F1-Score:  {2*(test_precision*test_recall)/(test_precision+test_recall):.4f}")
+    503 print(f"{'='*70}")
+    504 
+
+ZeroDivisionError: float division by zero

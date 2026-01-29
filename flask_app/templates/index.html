@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Breast Cancer Detection - AI Diagnosis</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M22 12h-4l-3 9L9 3l-3 9H2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <h1>Breast Cancer Detection</h1>
+                </div>
+                <div class="model-stats">
+                    <div class="stat">
+                        <span class="stat-label">Accuracy</span>
+                        <span class="stat-value">{{ model_accuracy }}%</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">AUC Score</span>
+                        <span class="stat-value">{{ model_auc }}</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Info Banner -->
+            <div class="info-banner">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <circle cx="12" cy="12" r="10" stroke-width="2"/>
+                    <line x1="12" y1="16" x2="12" y2="12" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="12" y1="8" x2="12" y2="8" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                <p>Upload a breast histopathology image to detect Invasive Ductal Carcinoma (IDC). This AI model is trained on 277,524+ medical images.</p>
+            </div>
+
+            <!-- Upload Section -->
+            <div class="upload-section" id="uploadSection">
+                <div class="upload-area" id="uploadArea">
+                    <input type="file" id="fileInput" accept="image/*" hidden>
+                    <div class="upload-icon">
+                        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <polyline points="17 8 12 3 7 8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <line x1="12" y1="3" x2="12" y2="15" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                    <h2>Upload Histopathology Image</h2>
+                    <p>Click to browse or drag and drop your image here</p>
+                    <p class="file-types">Supported: PNG, JPG, JPEG, BMP, TIFF</p>
+                    <button class="btn-primary" id="uploadBtn">Choose File</button>
+                </div>
+            </div>
+
+            <!-- Loading State -->
+            <div class="loading" id="loadingState" style="display: none;">
+                <div class="spinner"></div>
+                <p>Analyzing image with AI...</p>
+            </div>
+
+            <!-- Results Section -->
+            <div class="results-section" id="resultsSection" style="display: none;">
+                <h2>Analysis Results</h2>
+                
+                <div class="results-grid">
+                    <!-- Uploaded Image -->
+                    <div class="result-card">
+                        <h3>Uploaded Image</h3>
+                        <div class="image-preview">
+                            <img id="uploadedImage" src="" alt="Uploaded Image">
+                        </div>
+                    </div>
+
+                    <!-- Prediction Results -->
+                    <div class="result-card">
+                        <h3>AI Prediction</h3>
+                        <div class="prediction-result">
+                            <div class="prediction-badge" id="predictionBadge">
+                                <span id="predictionText"></span>
+                            </div>
+                            <div class="confidence">
+                                <div class="confidence-label">Confidence Level</div>
+                                <div class="confidence-bar">
+                                    <div class="confidence-fill" id="confidenceFill"></div>
+                                </div>
+                                <div class="confidence-value" id="confidenceValue"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Detailed Probabilities -->
+                <div class="probabilities-card">
+                    <h3>Detailed Probabilities</h3>
+                    <div class="probability-bars">
+                        <div class="probability-item">
+                            <div class="probability-header">
+                                <span class="probability-label">IDC Positive</span>
+                                <span class="probability-value" id="probPositive"></span>
+                            </div>
+                            <div class="probability-bar">
+                                <div class="probability-fill positive" id="fillPositive"></div>
+                            </div>
+                        </div>
+                        <div class="probability-item">
+                            <div class="probability-header">
+                                <span class="probability-label">No IDC (Negative)</span>
+                                <span class="probability-value" id="probNegative"></span>
+                            </div>
+                            <div class="probability-bar">
+                                <div class="probability-fill negative" id="fillNegative"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Disclaimer -->
+                <div class="disclaimer">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <circle cx="12" cy="12" r="10" stroke-width="2"/>
+                        <line x1="12" y1="8" x2="12" y2="12" stroke-width="2" stroke-linecap="round"/>
+                        <line x1="12" y1="16" x2="12" y2="16" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    <p><strong>Medical Disclaimer:</strong> This is an AI-assisted diagnostic tool for research purposes only. Always consult with qualified healthcare professionals for medical diagnosis and treatment decisions.</p>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="action-buttons">
+                    <button class="btn-secondary" id="analyzeAnotherBtn">Analyze Another Image</button>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>Powered by Deep Learning | TensorFlow & EfficientNetB0</p>
+            <p>Trained on Breast Histopathology Images Dataset (277,524+ images)</p>
+        </footer>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>
