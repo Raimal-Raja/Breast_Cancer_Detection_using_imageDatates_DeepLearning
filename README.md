@@ -27,7 +27,7 @@
 | Field | Details |
 |-------|---------|
 | **Author** | Raimal Raja Kolhi |
-| **Supervisor** | Assistant Professor Dileep Kumar |
+| **Supervisor** | Prof Dileep Kumar |
 | **Institution** | University of Sindh, Laar Campus |
 | **Date** | 31 January 2026 |
 | **Domain** | Medical Imaging & Computer Vision |
