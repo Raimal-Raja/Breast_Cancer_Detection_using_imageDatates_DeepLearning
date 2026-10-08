@@ -314,15 +314,14 @@ Supervised by: Assistant Professor Dileep Kumar
 
 ---
 
-## Repository guide
+## Setup and repository reference
 
-### Contents
+### Project structure
 
 - [Breast_Cancer_Detection_Project_Report.docx](Breast_Cancer_Detection_Project_Report.docx)
 - [Media](Media)
 - [Project Report.docx](Project%20Report.docx)
 - [Project Report.pdf](Project%20Report.pdf)
-- [README.md](README.md)
 - [breast_cancer_colab_training.ipynb](breast_cancer_colab_training.ipynb)
 - [flask_app](flask_app)
 - [requirements.ps1](requirements.ps1)
@@ -356,7 +355,11 @@ Training needs the original image dataset and suitable compute. The Flask demo n
 
 ### Validation
 
-Reviewed on 2026-10-08. Python syntax checks passed for 1 source files. Syntax validation does not establish runtime correctness or dependency compatibility.
+Audit: 2026-10-08. Repository structure, setup instructions and description were reviewed. 1 existing Python files passed syntax checks; changed files and new regression tests were checked separately. 1 JavaScript files passed node --check; JSX/TypeScript production builds were not run. Syntax checks do not establish full runtime correctness. External APIs, live scraping, GUI interaction, notebook training and production deployment were not comprehensively exercised.
+
+### Repository description
+
+The short GitHub description is provided in [REPOSITORY_DESCRIPTION.md](REPOSITORY_DESCRIPTION.md).
 
 ### Contributions
 
