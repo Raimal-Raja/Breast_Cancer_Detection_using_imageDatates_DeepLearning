@@ -311,3 +311,57 @@ Supervised by: Assistant Professor Dileep Kumar
 <div align="center">
   <sub>Built with ❤️ for early cancer detection research</sub>
 </div>
+
+---
+
+## Repository guide
+
+### Contents
+
+- [Breast_Cancer_Detection_Project_Report.docx](Breast_Cancer_Detection_Project_Report.docx)
+- [Media](Media)
+- [Project Report.docx](Project%20Report.docx)
+- [Project Report.pdf](Project%20Report.pdf)
+- [README.md](README.md)
+- [breast_cancer_colab_training.ipynb](breast_cancer_colab_training.ipynb)
+- [flask_app](flask_app)
+- [requirements.ps1](requirements.ps1)
+- [requirements.txt](requirements.txt)
+
+### Getting started
+
+```bash
+git clone https://github.com/Raimal-Raja/Breast_Cancer_Detection_using_imageDatates_DeepLearning.git
+cd Breast_Cancer_Detection_using_imageDatates_DeepLearning
+```
+
+Create and activate a virtual environment, then install the project dependencies:
+
+```bash
+python -m venv .venv
+# Linux/macOS: source .venv/bin/activate
+# Windows PowerShell: .venv\Scripts\Activate.ps1
+python -m pip install -r "requirements.txt"
+```
+
+Application entry point:
+
+```bash
+python flask_app/app.py
+```
+
+### Configuration and limitations
+
+Training needs the original image dataset and suitable compute. The Flask demo needs compatible saved model files. The project is an educational classifier.
+
+### Validation
+
+Reviewed on 2026-10-08. Python syntax checks passed for 1 source files. Syntax validation does not establish runtime correctness or dependency compatibility.
+
+### Contributions
+
+Describe the issue, reproduction steps, environment, and expected behavior when proposing a change. Keep generated environments, credentials, and unnecessary build artifacts out of new commits.
+
+### License
+
+No top-level license file was found during this review.
